@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Calling App</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body>
+    <h2>Ana-talk</h2>
+    <button id="startCall">Call</button>
+    <button id="hangUp" disabled>Hang Up</button>
+    <button id="acceptCall" style="display: none;">Accept Call</button>
+
+    <!-- Include Socket.IO client from your Node.js server -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Path to your custom JavaScript file -->
+    <script src="app.js"></script>
+</body>
+</html>
+
