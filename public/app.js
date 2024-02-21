@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // audioElement.autoplay = true;
     document.body.appendChild(audioElement);
     let peerConnection;
+    let iceCandidatesQueue = [];
     const configuration = {
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     };
@@ -25,13 +26,20 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (message.type === 'answer') {
             peerConnection.setRemoteDescription(new RTCSessionDescription(message.answer));
         } else if (message.type === 'new-ice-candidate') {
-            peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
+            if (peerConnection) {
+                console.log("Adding ICE candidate directly to peerConnection");
+                peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
+            } else {
+                console.log("Queueing ICE candidate");
+                iceCandidatesQueue.push(message.candidate);
+            }
         }
     });
 
     function startCall() {
         console.log('Starting call');
         preparePeerConnection();
+        console.log("peerConnection should be initialized now.");
         navigator.mediaDevices.getUserMedia({ audio: true, video: false })
             .then(stream => {
                 stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
@@ -75,6 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Preparing peer connection hahaha');
         try {
             peerConnection = new RTCPeerConnection(configuration);
+            iceCandidatesQueue.forEach(candidate => 
+                peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate))
+            );
+            iceCandidatesQueue = []; 
         } catch (error) {
             console.error('Failed to create peer connection:', error);
         }
