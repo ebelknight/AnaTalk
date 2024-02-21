@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (message.type === 'answer') {
             peerConnection.setRemoteDescription(new RTCSessionDescription(message.answer));
         } else if (message.type === 'new-ice-candidate') {
-            if (peerConnection) {
+            if (peerConnection ) {
                 console.log("Adding ICE candidate directly to peerConnection");
                 peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
             } else {
@@ -69,10 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
                 peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
                     .then(() => peerConnection.createAnswer())
-                    .then(answer => peerConnection.setLocalDescription(answer))
-                    .then(() => {
-                        console.log('Sending message:', message.type, message);
-                        socket.emit('message', { type: 'answer', answer: peerConnection.localDescription });
+                    .then(answer => {
+                        peerConnection.setLocalDescription(answer);
+                        return answer; // Make sure to return answer for the next .then()
+                    })
+                    .then(answer => {
+                        console.log('Sending answer to the signaling server');
+                        socket.emit('message', { type: 'answer', answer });
                         acceptCallButton.style.display = 'none'; // Hide the accept call button after accepting
                     });
             }).catch(error => console.error('Error accessing media devices:', error));
@@ -84,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             peerConnection = new RTCPeerConnection(configuration);
             iceCandidatesQueue.forEach(candidate => 
-                peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate))
+                peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
             );
             iceCandidatesQueue = []; 
         } catch (error) {
